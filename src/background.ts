@@ -3,6 +3,8 @@
 import { app, protocol, BrowserWindow } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+import * as path from 'path'
+import { useElectronStorage } from './storage'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Scheme must be registered before the app is ready
@@ -17,16 +19,21 @@ async function createWindow() {
     height: 300,
     frame: false,
     webPreferences: {
-
-      // Required for Spectron testing
+      preload: path.join(__dirname, "preload.js"),
       enableRemoteModule: true,
-
-      // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       nodeIntegration: (process.env
-        .ELECTRON_NODE_INTEGRATION as unknown) as boolean
-    }
-  })
+        .ELECTRON_NODE_INTEGRATION as unknown) as boolean,
+    },
+  });
+
+  // Read & set database path, defaults to 'Home' directory
+  const es = useElectronStorage()
+  const esPath = es.getDatabasePath()
+  es.setDatabasePath(esPath ? esPath : null)
+  // (window.dialog.showOpenDialogSync({ title: 'Select Database Directory', properties: ['openDirectory'] }))![0]
+  // window.path = databasePath ? databasePath : remote.app.getPath("home");
+
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -41,16 +48,11 @@ async function createWindow() {
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })
 
+// Create window upon App-dock icon click.
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
