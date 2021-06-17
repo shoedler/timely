@@ -34,7 +34,11 @@
      -->
     <div class="Box Box--condensed mt-4 input-dark border-0">
       <div class="Box-row border-black-fade d-flex flex-justify-between" v-for="stamp in stampsCollection" :key="stamp.name">
-        <span>{{ stamp.name }} [{{ stamp.type }}] </span>
+        <span>
+          <span class="Counter mr-1">1</span>
+          {{ stamp.name }}
+          <span class="IssueLabel bg-red text-white ml-1">{{ stamp.type }}</span>
+        </span>
         <div>
           <span>{{ stamp.snapshot.time }}</span>
           <button @click="newFromStamp(stamp)" type="button" class="btn-octicon">
@@ -108,7 +112,7 @@ export default defineComponent({
       let path = ''
       const res: OpenDialogReturnValue = await window.dialog.showOpenDialog({
         title: 'Set Database Directory',
-        message: 'Define where the databse should be stored / is located at',
+        message: 'Define where the database should be stored / is located at',
         properties: ["openDirectory"]
       })
       path = res.filePaths[0]
